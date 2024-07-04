@@ -4,6 +4,26 @@
 
 ---
 
+#### **Initial Access**
+
+1. **Attempt to Install Kali Linux via WSL**
+   - **Query:**
+     ```sql
+     process where process.name == "wsl.exe" and process.command_line like~ "* kali *"
+     ```
+   - **MITRE ID:** [T1072](https://attack.mitre.org/techniques/T1072/)
+   - **Description:** Detects attempts to install Kali Linux via Windows Subsystem for Linux (WSL).
+
+2. **Browser Extension Install**
+   - **Query:**
+     ```sql
+     file where file.path like~ "*.crx" or file.path like~ "*.xpi"
+     ```
+   - **MITRE ID:** [T1176](https://attack.mitre.org/techniques/T1176/)
+   - **Description:** Monitors for the installation of browser extensions.
+
+---
+
 #### **Execution**
 
 1. **Services.exe launching scripting engine**
@@ -48,6 +68,87 @@
 
 ---
 
+6. **Control Panel Items**
+   - **Query:**
+     ```sql
+     process where process.name in ("control.exe", "rundl132.exe") and process.command_line like~ "*.cpl *"
+     ```
+   - **MITRE ID:** [T1218.002](https://attack.mitre.org/techniques/T1218/002/)
+   - **Description:** Detects execution of Control Panel items using `control.exe` or `rundl132.exe` with `.cpl` files.
+
+7. **Mshta execution**
+   - **Query:**
+     ```sql
+     process where process.name == "mshta.exe" and process.command_line like~ "*.hta*"
+     ```
+   - **MITRE ID:** [T1218.005](https://attack.mitre.org/techniques/T1218/005/)
+   - **Description:** Detects the execution of HTA files using `mshta.exe`.
+
+8. **BITS Jobs Execution**
+   - **Query:**
+     ```sql
+     process where process.name == "bitsadmin.exe" and process.command_line like~ "* /TRANSFER *"
+     ```
+   - **MITRE ID:** [T1197](https://attack.mitre.org/techniques/T1197/)
+   - **Description:** Monitors for the use of `bitsadmin.exe` to create BITS jobs.
+
+9. **Wscript Execution**
+   - **Query:**
+     ```sql
+     process where process.name == "wscript.exe" and process.command_line like~ "*.vbs*"
+     ```
+   - **MITRE ID:** [T1059.005](https://attack.mitre.org/techniques/T1059/005/)
+   - **Description:** Detects the execution of VBScript files using `wscript.exe`.
+
+10. **Certutil.exe Execution**
+   - **Query:**
+     ```sql
+     process where process.name == "certutil.exe" and process.command_line like~ "* -encode *"
+     ```
+   - **MITRE ID:** [T1140](https://attack.mitre.org/techniques/T1140/)
+   - **Description:** Identifies the use of `certutil.exe` to encode files.
+
+11. **Scripting - PowerShell Trace**
+   - **Query:**
+     ```sql
+     scripting where powershell_trace.event_id in (7937, 4103, 4104)
+     ```
+   - **MITRE ID:** [T1059.001](https://attack.mitre.org/techniques/T1059/001/)
+   - **Description:** Detects specific PowerShell events indicative of script execution.
+
+12. **Scripting - General Script Execution**
+   - **Query:**
+     ```sql
+     scripting where event.subcategory != "powershell" and event.type in ("execute script", "prevent script")
+     ```
+   - **MITRE ID:** [T1059](https://attack.mitre.org/techniques/T1059/)
+   - **Description:** Identifies the execution of non-PowerShell scripts.
+
+13. **Scripting - MITRE Techniques**
+   - **Query:**
+     ```sql
+     scripting where event.mitre.techniques.name like~ "*"
+     ```
+   - **MITRE ID:** [T1059](https://attack.mitre.org/techniques/T1059/)
+   - **Description:** Monitors for scripting events tagged with MITRE techniques.
+
+14. **PowerShell Process Injection**
+   - **Query:**
+     ```sql
+     process where process.name == "powershell.exe" and event.type == "process handle opened"
+     ```
+   - **MITRE ID:** [T1059.001](https://attack.mitre.org/techniques/T1059/001/)
+   - **Description:** Detects process injection attempts using PowerShell.
+
+15. **Inter-Process Communication via Xwizard**
+   - **Query:**
+     ```sql
+     process where process.file.path like~ "*xwizard.exe" and process.command_line like~ "*Runwizard*"
+     ```
+   - **MITRE ID:** [T1559](https://attack.mitre.org/techniques/T1559/)
+   - **Description:** Monitors for the use of `xwizard.exe` to facilitate inter-process communication.
+---
+
 #### **Persistence**
 
 1. **Startup Folder Persistence**
@@ -65,6 +166,23 @@
      ```
    - **MITRE ID:** [T1053.005](https://attack.mitre.org/techniques/T1053/005/)
    - **Description:** Detects the creation of scheduled tasks via `schtasks.exe`.
+
+
+3. **Office Macros**
+   - **Query:**
+     ```sql
+     process where process.name in ("winword.exe", "excel.exe", "powerpnt.exe") and process.command_line like~ "*.docm *.xlsm *.pptm"
+     ```
+   - **MITRE ID:** [T1137](https://attack.mitre.org/techniques/T1137/)
+   - **Description:** Monitors for the execution of Office documents with macros enabled.
+
+4. **Registry Run Keys**
+   - **Query:**
+     ```sql
+     registry where registry.path == "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" and registry.value_name like~ "*"
+     ```
+   - **MITRE ID:** [T1547.001](https://attack.mitre.org/techniques/T1547/001/)
+   - **Description:** Detects the creation of registry run keys for persistence.
 
 ---
 
@@ -154,6 +272,71 @@
    - **MITRE ID:** [T1070.006](https://attack.mitre.org/techniques/T1070/006/)
    - **Description:** Monitors for the use of `attrib.exe` to change file attributes.
 
+7. **Command Line Obfuscation**
+   - **Query:**
+     ```sql
+     process where process.command_line regex~ ".*\\^.*\\&.*\\|.*"
+     ```
+   - **MITRE ID:** [T1027](https://attack.mitre.org/techniques/T1027/)
+   - **Description:** Detects obfuscated command lines using characters like `^`, `&`, and `|`.
+
+8. **Image File Execution Options Injection**
+   - **Query:**
+     ```sql
+     registry where registry.path like~ "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\*.exe" and registry.value_name == "Debugger"
+     ```
+   - **MITRE ID:** [T1546.012](https://attack.mitre.org/techniques/T1546/012/)
+   - **Description:** Monitors for modifications to Image File Execution Options (IFEO) registry keys to hijack executables.
+
+9. **Encoded PowerShell Commands**
+   - **Query:**
+     ```sql
+     process where process.command_line like~ "*powershell* -encodedcommand *"
+     ```
+   - **MITRE ID:** [T1027.001](https://attack.mitre.org/techniques/T1027/001/)
+   - **Description:** Detects the use of encoded commands in PowerShell.
+  
+10. **Potential Evasion via Filter Manager**
+   - **Query:**
+     ```sql
+     process where process.name == "fltMC.exe" and process.command_line like~ "* unload *"
+     ```
+   - **MITRE ID:** [T1562](https://attack.mitre.org/techniques/T1562/)
+   - **Description:** Detects the use of `fltMC.exe` to unload filter drivers, a potential evasion technique.
+
+11. **Bypass UAC via Event Viewer**
+   - **Query:**
+     ```sql
+     process where process.parent.name == "eventvwr.exe" and process.name not in ("mmc.exe")
+     ```
+   - **MITRE ID:** [T1088](https://attack.mitre.org/techniques/T1088/)
+   - **Description:** Detects potential UAC bypass attempts using Event Viewer.
+
+12. **Command Line Obfuscation**
+   - **Query:**
+     ```sql
+     process where process.name == "cmd.exe" and process.command_line like~ "* copy *//b *"
+     ```
+   - **MITRE ID:** [T1027](https://attack.mitre.org/techniques/T1027/)
+   - **Description:** Identifies obfuscated command line usage to evade detection.
+
+13. **Processes Running Without Command Line**
+   - **Query:**
+     ```sql
+     process where process.name in ("backgroundtaskhost.exe", "svchost.exe", "dllhost.exe", "werfault.exe", "searchprotocolhost.exe", "wuauclt.exe", "spoolsv.exe", "rund1132.exe", "regasm.exe", "regsvr32.exe", "regsvcs.exe") and process.command_line == ""
+     ```
+   - **MITRE ID:** [T1036](https://attack.mitre.org/techniques/T1036/)
+   - **Description:** Detects processes running without command line arguments, which can indicate masquerading.
+
+14. **System Binary Proxy Execution - CHM Files**
+   - **Query:**
+     ```sql
+     process where process.name == "hh.exe"
+     ```
+   - **MITRE ID:** [T1218.001](https://attack.mitre.org/techniques/T1218/001/)
+   - **Description:** Monitors for the execution of compiled HTML files using `hh.exe`.
+
+     
 ---
 
 #### **Credential Access**
@@ -174,6 +357,29 @@
    - **MITRE ID:** [T1075](https://attack.mitre.org/techniques/T1075/)
    - **Description:** Detects the use of Impacket's `wmiexec` tool for pass-the-hash attacks.
 
+3. **Mimikatz Execution**
+   - **Query:**
+     ```sql
+     process where process.name == "mimikatz.exe" or process.command_line like~ "*sekurlsa::logonpasswords*"
+     ```
+   - **MITRE ID:** [T1003.001](https://attack.mitre.org/techniques/T1003/001/)
+   - **Description:** Detects the execution of Mimikatz, a tool used for credential dumping.
+
+4. **Dumping NTDS.dit**
+   - **Query:**
+     ```sql
+     process where process.command_line like~ "*esentutl* /y* /d* /o*"
+     ```
+   - **MITRE ID:** [T1003.003](https://attack.mitre.org/techniques/T1003/003/)
+   - **Description:** Identifies the use of `esentutl` for dumping the NTDS.dit file.
+  
+5. **Scripting - Credential Access via PowerShell**
+   - **Query:**
+     ```sql
+     process where process.name == "powershell.exe" and process.command_line like~ ("*invoke-expression*", "*iex*", "*downloadstring*", "*downloadfile*")
+     ```
+   - **MITRE ID:** [T1059.001](https://attack.mitre.org/techniques/T1059/001/)
+   - **Description:** Detects PowerShell commands indicative of credential access attempts. 
 ---
 
 #### **Discovery**
@@ -196,6 +402,37 @@ AS all activity**
    - **MITRE ID:** [T1046](https://attack.mitre.org/techniques/T1046/)
    - **Description:** Detects network discovery commands executed via PowerShell.
 
+3. **Net Command Execution**
+   - **Query:**
+     ```sql
+     process where process.name == "net.exe" and process.command_line like~ "* user *"
+     ```
+   - **MITRE ID:** [T1087.001](https://attack.mitre.org/techniques/T1087/001/)
+   - **Description:** Detects the use of the `net` command to enumerate user accounts.
+
+4. **Network Share Enumeration**
+   - **Query:**
+     ```sql
+     process where process.name == "net.exe" and process.command_line like~ "* share *"
+     ```
+   - **MITRE ID:** [T1135](https://attack.mitre.org/techniques/T1135/)
+   - **Description:** Monitors for the enumeration of network shares using the `net` command.
+  
+ 5. **Command and Scripting Interpreter - Network Connection**
+   - **Query:**
+     ```sql
+     network where process.name == "cmd.exe"
+     ```
+   - **MITRE ID:** [T1059](https://attack.mitre.org/techniques/T1059/)
+   - **Description:** Identifies `cmd.exe` making a network connection.
+
+ 6. **Command and Scripting Interpreter - Suspicious Parent-Child Process Relationship**
+   - **Query:**
+     ```sql
+     process where process.name == "cmd.exe" and process.parent.name in ("lsass.exe", "csrss.exe", "epad.exe", "regsvr32.exe", "dllhost.exe", "LogonUI.exe", "wermgr.exe", "spoolsv.exe", "jucheck.exe", "jusched.exe", "ctfmon.exe", "taskhostw.exe", "Googleupdate.exe", "sppsvc.exe", "sihost.exe", "slui.exe", "SIHClient.exe", "SearchIndexer.exe", "SearchProtocolHost.exe", "FlashPlayerUpdateService.exe", "WerFault.exe", "WUDFHost.exe", "unsecapp.exe", "wlanext.exe")
+     ```
+   - **MITRE ID:** [T1059](https://attack.mitre.org/techniques/T1059/)
+   - **Description:** Identifies suspicious parent-child process relationships involving `cmd.exe`.    
 ---
 
 #### **Lateral Movement**
@@ -215,6 +452,22 @@ AS all activity**
      ```
    - **MITRE ID:** [T1047](https://attack.mitre.org/techniques/T1047/)
    - **Description:** Monitors for remote command execution via WMI.
+  
+3. **SMB Connection Attempt**
+   - **Query:**
+     ```sql
+     network where network.protocol == "SMB" and network.destination_port == 445
+     ```
+   - **MITRE ID:** [T1021.002](https://attack.mitre.org/techniques/T1021/002/)
+   - **Description:** Identifies SMB connection attempts, which can be used for lateral movement.
+
+4. **Remote Desktop Connection**
+   - **Query:**
+     ```sql
+     network where network.protocol == "RDP" and network.destination_port == 3389
+     ```
+   - **MITRE ID:** [T1021.001](https://attack.mitre.org/techniques/T1021/001/)
+   - **Description:** Monitors for RDP connections to detect potential lateral movement via Remote Desktop Protocol.
 
 ---
 
@@ -227,6 +480,15 @@ AS all activity**
      ```
    - **MITRE ID:** [T1530](https://attack.mitre.org/techniques/T1530/)
    - **Description:** Monitors for the transfer of documents to network shares.
+  
+2.  **Executable File Creation with Multiple Extensions**
+   - **Query:**
+     ```sql
+     file where file.path regex~ ".*[.](?:vbs|vbe|bat|js|cmd|wsh|ps1?|pdf|docx?|xlsx?|pptx?|txt|rtf|gif|jpg|png|bmp|hta|txt|img|iso|zip)[.]exe"
+     ```
+   - **MITRE ID:** [T1566](https://attack.mitre.org/techniques/T1566/)
+   - **Description:** Detects the creation of executable files with multiple extensions.
+
 
 ---
 
@@ -239,6 +501,14 @@ AS all activity**
      ```
    - **MITRE ID:** [T1219](https://attack.mitre.org/techniques/T1219/)
    - **Description:** Detects the execution of known remote access tools.
+  
+2.  **Cobalt Strike Beacon Detection**
+   - **Query:**
+     ```sql
+     network where http.request.domain regex~ "[a-z]{3}\.stage\.[0-9]{8}\."
+     ```
+   - **MITRE ID:** [T1071.001](https://attack.mitre.org/techniques/T1071/001/)
+   - **Description:** Identifies HTTP requests consistent with Cobalt Strike beacons.
 
 ---
 
