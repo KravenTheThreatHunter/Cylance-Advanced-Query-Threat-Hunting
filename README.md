@@ -4,6 +4,38 @@
 
 ---
 
+#### **Reconnaissance**
+
+1. **Account Discovery via Net.exe**
+   - **Query:**
+     ```sql
+     process where process.name == "net.exe" and process.command_line like~ "* user *"
+     ```
+   - **MITRE ID:** [T1087](https://attack.mitre.org/techniques/T1087/)
+   - **Description:** Detects the use of `net.exe` to discover user accounts.
+
+2. **Network Share Discovery**
+   - **Query:**
+     ```sql
+     process where process.name == "net.exe" and process.command_line like~ "* share *"
+     ```
+   - **MITRE ID:** [T1135](https://attack.mitre.org/techniques/T1135/)
+   - **Description:** Monitors for attempts to discover network shares using `net.exe`.
+
+---
+
+#### **Resource Development**
+
+1. **Malicious Domain Registration**
+   - **Query:**
+     ```sql
+     network where dns.request.name like~ "*.com" and process.name in ("powershell.exe", "cmd.exe")
+     ```
+   - **MITRE ID:** [T1583](https://attack.mitre.org/techniques/T1583/)
+   - **Description:** Identifies suspicious domain registration activities.
+
+---
+
 #### **Initial Access**
 
 1. **Attempt to Install Kali Linux via WSL**
@@ -432,7 +464,16 @@ AS all activity**
      process where process.name == "cmd.exe" and process.parent.name in ("lsass.exe", "csrss.exe", "epad.exe", "regsvr32.exe", "dllhost.exe", "LogonUI.exe", "wermgr.exe", "spoolsv.exe", "jucheck.exe", "jusched.exe", "ctfmon.exe", "taskhostw.exe", "Googleupdate.exe", "sppsvc.exe", "sihost.exe", "slui.exe", "SIHClient.exe", "SearchIndexer.exe", "SearchProtocolHost.exe", "FlashPlayerUpdateService.exe", "WerFault.exe", "WUDFHost.exe", "unsecapp.exe", "wlanext.exe")
      ```
    - **MITRE ID:** [T1059](https://attack.mitre.org/techniques/T1059/)
-   - **Description:** Identifies suspicious parent-child process relationships involving `cmd.exe`.    
+   - **Description:** Identifies suspicious parent-child process relationships involving `cmd.exe`.
+
+7. **System Information Discovery**
+   - **Query:**
+     ```sql
+     process where process.name == "systeminfo.exe"
+     ```
+   - **MITRE ID:** [T1082](https://attack.mitre.org/techniques/T1082/)
+   - **Description:** Detects the use of `systeminfo.exe` to gather system information.
+   
 ---
 
 #### **Lateral Movement**
@@ -488,7 +529,6 @@ AS all activity**
      ```
    - **MITRE ID:** [T1566](https://attack.mitre.org/techniques/T1566/)
    - **Description:** Detects the creation of executable files with multiple extensions.
-
 
 ---
 
